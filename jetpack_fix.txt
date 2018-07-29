@@ -1,0 +1,14 @@
+"Games"
+{
+	"tf"
+	{
+		"Offsets"
+		{
+			"CBaseAnimating::GetSequenceGroundSpeed"
+			{
+				"windows"	"196"
+				"linux"		"197"
+			}
+		}
+	}
+}
