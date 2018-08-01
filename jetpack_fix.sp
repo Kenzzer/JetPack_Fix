@@ -3,13 +3,11 @@
 #include <sdktools>
 #include <dhooks>
 
-int g_iPyroArms = -1;
-
 public Plugin myinfo = 
 {
     name = "[TF2] Jet Pack Fix",
     author	= "Benoist3012",
-    description	= "Fix the notorious crash \"server_srv.so!CStudioHdr::GetSharedPoseParameter(int, int) const\".",
+    description	= "Fixes the notorious crash \"server_srv.so!CStudioHdr::GetSharedPoseParameter(int, int) const\".",
     version = "0.1",
     url = "https://steamcommunity.com/id/Benoist3012/"
 }
@@ -40,11 +38,6 @@ public void OnPluginStart()
 	}
 }
 
-public void OnMapStart()
-{
-	g_iPyroArms = PrecacheModel("models/weapons/c_models/c_pyro_arms.mdl");
-}
-
 public void OnEntityCreated(int entity, const char[] classname)
 {
 	if (strcmp(classname, "tf_viewmodel") == 0)
@@ -53,22 +46,35 @@ public void OnEntityCreated(int entity, const char[] classname)
 
 public MRESReturn Hook_GetSequenceGroundSpeed(int iVM, Handle hReturn, Handle hParams)
 {
-	int iJetPack = GetEntPropEnt(iVM, Prop_Send, "m_hWeapon");
-	if (iJetPack > MaxClients)
+	/*
+	// Enable this if the above code creates bogus anim
+	Address pStudioHdr = DHookGetParam(hParams, 1);
+	int iSequence = DHookGetParam(hParams, 2);
+	
+	if (iSequence < 0) // Invalid sequence number, ignore..
 	{
-		int iModelIndex = GetEntProp(iVM, Prop_Send, "m_nModelIndex");
-		
-		if (iModelIndex != g_iPyroArms) // Could also check if the arms are the sniper's but we don't know if it will crash with more classes later on, so it's safer to check if it's not hold by a pyro
-		{
-			char sClassName[64];
-			GetEntityClassname(iJetPack, sClassName, sizeof(sClassName));
-			
-			if (strcmp(sClassName, "tf_weapon_rocketpack") == 0) // Could check the item index definition but we don't know if valve will add skin varient of that weapon so it is probably safer to look for the classname
-			{
-				DHookSetReturn(hReturn, 0.0);
-				return MRES_Supercede;
-			}
-		}
+		DHookSetReturn(hReturn, 0.0);
+		return MRES_Supercede;
 	}
-	return MRES_Ignored;
+	
+	// Info extracted from CStudioHdr::GetNumSeq( void ) ref: https://github.com/alliedmodders/hl2sdk/blob/fd71bdcb174866524c2bdf4847f93d6ca5ce9c69/public/studio.cpp#L904
+	Address pVModel = view_as<Address>(LoadFromAddress(pStudioHdr + view_as<Address>(1 * 4), NumberType_Int32));
+	if (pVModel == Address_Null) // We have problem if this is null
+	{
+		DHookSetReturn(hReturn, 0.0);
+		return MRES_Supercede;
+	}
+	
+	int iTotalSequence = LoadFromAddress(pStudioHdr + view_as<Address>(5 * 4), NumberType_Int32);
+	if (iSequence >= iTotalSequence) // Invalid sequence skip
+	{
+		DHookSetReturn(hReturn, 0.0);
+		return MRES_Supercede;
+	}
+	*/
+	
+	DHookSetReturn(hReturn, 0.0);
+	return MRES_Supercede;
+	
+	//return MRES_Ignored;
 }
